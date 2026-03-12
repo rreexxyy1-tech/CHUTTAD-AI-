@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desi Roaster AI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            text-align: center;
+            padding: 50px;
+        }
+        button {
+            background-color: #ff4757;
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
+            margin-top: 20px;
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+        #status {
+            margin-top: 20px;
+            font-style: italic;
+            color: #ffa502;
+        }
+        #chatBox {
+            margin-top: 40px;
+            background: #1e272e;
+            padding: 20px;
+            border-radius: 10px;
+            min-height: 100px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Desi Roaster AI 🤬</h1>
+    <p>Himmat hai toh button daba aur kuch bol!</p>
+
+    <button id="talkBtn">🎙️ Bolo Bhai</button>
+    <div id="status">Shanti hai...</div>
+    
+    <div id="chatBox">
+        <p><strong>Tum:</strong> <span id="userText">-</span></p>
+        <p><strong>AI:</strong> <span id="aiText">-</span></p>
+    </div>
+
+    <script>
+        const btn = document.getElementById('talkBtn');
+        const status = document.getElementById('status');
+        const userTextSpan = document.getElementById('userText');
+        const aiTextSpan = document.getElementById('aiText');
+
+        // Speech Recognition Setup (Mic ki permissions mangega)
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'hi-IN'; // Hindi samajhne ke liye
+
+        btn.addEventListener('click', () => {
+            recognition.start();
+            status.innerText = "Sun raha hu teri bakwas... Bol!";
+        });
+
+        recognition.onresult = async (event) => {
+            const transcript = event.results[0][0].transcript;
+            userTextSpan.innerText = transcript;
+            status.innerText = "Dimaag laga raha hu ruk...";
+
+            // Send text to Python backend
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: transcript })
+            });
+
+            const data = await response.json();
+            aiTextSpan.innerText = data.reply;
+            status.innerText = "Lo suno ab!";
+
+            // Text-to-Speech Setup (AI bolega)
+            speakRoast(data.reply);
+        };
+
+        function speakRoast(text) {
+            const speech = new SpeechSynthesisUtterance();
+            speech.text = text;
+            speech.lang = 'hi-IN'; // Indian accent
+            speech.rate = 1.1; // Thoda speed me bolega attitude ke liye
+            speech.pitch = 0.9;
+            window.speechSynthesis.speak(speech);
+        }
+
+        recognition.onerror = () => {
+            status.innerText = "Awaaz nahi aayi, theek se bol!";
+        };
+    </script>
+</body>
+</html>
